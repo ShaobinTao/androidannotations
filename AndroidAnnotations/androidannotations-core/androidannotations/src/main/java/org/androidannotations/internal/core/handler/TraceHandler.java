@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2010-2016 eBusiness Information, Excilys Group
+ * Copyright (C) 2016 the AndroidAnnotations project
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -98,7 +99,7 @@ public class TraceHandler extends BaseAnnotationHandler<EComponentHolder> {
 
 		logEnterInvoke.arg(getEnterMessage(method, executableElement));
 		thenBody.add(logEnterInvoke);
-		JVar startDeclaration = thenBody.decl(getCodeModel().LONG, "start", currentTimeInvoke);
+		JVar startDeclaration = thenBody.decl(getCodeModel().LONG, "traceStart_", currentTimeInvoke);
 
 		JTryBlock tryBlock;
 
@@ -108,7 +109,7 @@ public class TraceHandler extends BaseAnnotationHandler<EComponentHolder> {
 			tryBlock.body().add(previousMethodBody);
 		} else {
 			JInvocation superCall = codeModelHelper.getSuperCall(holder, method);
-			result = thenBody.decl(getJClass(Object.class), "result", JExpr._null());
+			result = thenBody.decl(getJClass(Object.class), "traceResult_", JExpr._null());
 			tryBlock = thenBody._try();
 			tryBlock.body().assign(result, superCall);
 			tryBlock.body()._return(JExpr.cast(boxify(method.type()), result));
@@ -116,7 +117,7 @@ public class TraceHandler extends BaseAnnotationHandler<EComponentHolder> {
 
 		JBlock finallyBlock = tryBlock._finally();
 
-		JVar durationDeclaration = finallyBlock.decl(getCodeModel().LONG, "duration", currentTimeInvoke.minus(startDeclaration));
+		JVar durationDeclaration = finallyBlock.decl(getCodeModel().LONG, "traceDuration_", currentTimeInvoke.minus(startDeclaration));
 
 		JInvocation logExitInvoke = getClasses().LOG.staticInvoke(logMethodName);
 		logExitInvoke.arg(tag);
